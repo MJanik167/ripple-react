@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import React, { useEffect, useState, useLayoutEffect, useRef } from 'react';
+import { useState, useLayoutEffect, useRef } from 'react';
 
 
 
@@ -29,6 +29,9 @@ class Player {
 
     this.x = x;
     this.y = y;
+    this.dx = 0;
+    this.dy = 0;
+    this.a = 0
     this.ctx = ctx;
   }
 
