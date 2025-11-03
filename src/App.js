@@ -47,7 +47,7 @@ class Player {
     this.dy = 0;
     this.right = 0;
     this.left = 0;
-    this.a = 0;
+    this.a = 1;
     this.ctx = ctx;
   }
 
@@ -79,7 +79,7 @@ class Player {
         break;
       case 'ArrowLeft':
         this.a -= 0.1;
-        if (this.a < 0) this.a = 2 * pi;
+        if (this.a < 0) this.a += 2 * pi;
         this.dx = Math.cos(this.a);
         this.dy = Math.sin(this.a);
         this.right = Math.cos(this.a + pi / 2);
@@ -87,7 +87,7 @@ class Player {
         break;
       case 'ArrowRight':
         this.a += 0.1;
-        if (this.a > 2 * pi) this.a = 0;
+        if (this.a > 2 * pi) this.a -= 2 * pi;
         this.dx = Math.cos(this.a);
         this.dy = Math.sin(this.a);
         this.right = Math.cos(this.a + pi / 2);
@@ -126,10 +126,10 @@ class Player {
 
       dof = 0
       let aTan = -1 / Math.tan(ra)
+
       if (ra > pi) {
         ry = Math.floor(this.y / tileSize) * tileSize - 0.0001
         rx = (this.y - ry) * aTan + this.x
-        console.log(ry, rx);
         yo = -tileSize;
         xo = -yo * aTan;
       }
@@ -139,7 +139,7 @@ class Player {
         yo = tileSize;
         xo = -yo * aTan;
       }
-      if (ra == 0 || ra == pi) {
+      if (ra === 0 || ra === pi) {
         rx = this.x
         ry = this.y
         dof = 8
@@ -149,7 +149,7 @@ class Player {
         my = Math.floor(ry / tileSize)
         mp = my * mapX + mx;
 
-        if (mp < mapX * mapY && map[mp] == 1) {
+        if (mp < mapX * mapY && map[mp] === 1) {
           dof = 8
         } else {
           rx += xo
@@ -230,7 +230,7 @@ function App() {
     canvasRef.current.strokeStyle = '#c4c4c4ff';
     canvasRef.current.lineWidth = 10;
 
-    player.current = new Player(200, 200, canvasRef.current)
+    player.current = new Player(150, 200, canvasRef.current)
 
     window.addEventListener('resize', handleResize);
 
