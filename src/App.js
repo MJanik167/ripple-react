@@ -225,7 +225,6 @@ class Player {
       this.ctx.lineTo(px, py);
       this.ctx.stroke();
 
-
       let ca = this.a - ra
       if (ca < 0) {
         ca += 2 * pi
@@ -242,7 +241,7 @@ class Player {
       console.log(lineH);
 
       this.ctx.strokeStyle = '#2500caff';
-      this.ctx.lineWidth = 8;
+      this.ctx.lineWidth = 10;
       this.ctx.beginPath();
       this.ctx.moveTo(800 + r * 10, lineOffset);
       this.ctx.lineTo(800 + r * 10, lineH + lineOffset);
