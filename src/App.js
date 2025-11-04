@@ -2,17 +2,19 @@ import './App.css';
 import { useState, useLayoutEffect, useRef } from 'react';
 
 const pi = Math.PI;
-const mapX = 8, mapY = 8, tileSize = 64;
+const mapX = 10, mapY = 10, tileSize = 64;
 
 const map = [
-  1, 1, 1, 1, 1, 1, 1, 1,
-  1, 0, 0, 1, 0, 0, 0, 1,
-  1, 0, 0, 1, 0, 0, 0, 1,
-  1, 0, 0, 1, 0, 0, 0, 1,
-  1, 0, 0, 1, 1, 0, 0, 1,
-  1, 0, 0, 0, 0, 0, 0, 1,
-  1, 0, 0, 0, 0, 1, 0, 1,
-  1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 0, 0, 1, 0, 0, 0, 1, 1,
+  1, 1, 0, 0, 1, 0, 0, 0, 1, 1,
+  1, 1, 0, 0, 1, 0, 0, 0, 1, 1,
+  1, 1, 0, 0, 1, 1, 0, 0, 1, 1,
+  1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
+  1, 1, 0, 0, 0, 0, 1, 0, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 
 ]
 
@@ -39,7 +41,6 @@ class Ripple {
 
 class Player {
   constructor(x, y, ctx) {
-    console.log(x, y, ctx);
 
     this.x = x;
     this.y = y;
@@ -47,12 +48,12 @@ class Player {
     this.dy = 0;
     this.right = 0;
     this.left = 0;
-    this.a = 1;
+    this.a = 3.7;
     this.ctx = ctx;
+    this.degree = 0.0174532925;
   }
 
   keyDown(e) {
-    console.log(e.key);
 
     switch (e.key) {
       case 'w':
@@ -117,12 +118,24 @@ class Player {
 
   }
 
+  distance(ax, bx, ay, by) {
+    return Math.sqrt((ax - bx) * (ax - bx) + (ay - by) * (ay - by))
+  }
+
   rayCast() {
     let r, rx, ry, ra, xo, yo, dof;
     let mp, mx, my
-    ra = this.a
+    ra = this.a - this.degree * 30
+    if (ra < 0) {
+      ra += 2 * pi
+    } else if (ra > 2 * pi) {
+      ra -= 2 * pi
+    }
 
-    for (r = 0; r < 1; r++) {
+    let hx, hy, disH = 100000000
+
+
+    for (r = 0; r < 60; r++) {
 
       dof = 0
       let aTan = -1 / Math.tan(ra)
@@ -142,30 +155,32 @@ class Player {
       if (ra === 0 || ra === pi) {
         rx = this.x
         ry = this.y
+
         dof = 8
       }
-      while (dof < 4) {
+      while (dof < 8) {
         mx = Math.floor(rx / tileSize)
         my = Math.floor(ry / tileSize)
         mp = my * mapX + mx;
 
         if (mp < mapX * mapY && map[mp] === 1) {
           dof = 8
+          hx = rx
+          hy = ry
+          disH = this.distance(hx, this.x, hy, this.y)
         } else {
           rx += xo
           ry += yo
           dof += 1
         }
       }
-      console.log(rx, ry)
-      this.ctx.strokeStyle = '#4adb37ff';
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.x, this.y);
-      this.ctx.lineTo(rx, ry);
-      this.ctx.stroke();
 
+
+      //console.log("rx ", rx, "ry ", ry, "ra ", ra)
 
       dof = 0
+
+      let vx, vy, disV = 100000000
       let nTan = -Math.tan(ra)
       if (ra > pi / 2 && ra < pi * 3 / 2) {
         rx = Math.floor(this.x / tileSize) * tileSize - 0.0001
@@ -184,24 +199,61 @@ class Player {
         ry = this.y
         dof = 8
       }
-      while (dof < 4) {
+      while (dof < 8) {
         mx = Math.floor(rx / tileSize)
         my = Math.floor(ry / tileSize)
         mp = my * mapX + mx;
 
         if (mp < mapX * mapY && map[mp] == 1) {
           dof = 8
+          vx = rx
+          vy = ry
+          disV = this.distance(vx, this.x, vy, this.y)
         } else {
           rx += xo
           ry += yo
           dof += 1
         }
       }
-      this.ctx.strokeStyle = '#db3797ff';
+
+      let finalDist = disH > disV ? disV : disH;
+      let [px, py] = disH > disV ? [vx, vy] : [hx, hy]
+      this.ctx.strokeStyle = '#4adb37ff';
+      this.ctx.lineWidth = 1;
       this.ctx.beginPath();
       this.ctx.moveTo(this.x, this.y);
-      this.ctx.lineTo(rx, ry);
+      this.ctx.lineTo(px, py);
       this.ctx.stroke();
+
+
+      let ca = this.a - ra
+      if (ca < 0) {
+        ca += 2 * pi
+      } else if (ca > 2 * pi) {
+        ca -= 2 * pi
+      }
+      finalDist = finalDist * Math.cos(ca)
+
+
+      let lineH = (tileSize * 800) / finalDist
+      if (lineH > 800) { lineH = 200 }
+      let lineOffset = 400 - lineH / 2
+
+      console.log(lineH);
+
+      this.ctx.strokeStyle = '#2500caff';
+      this.ctx.lineWidth = 8;
+      this.ctx.beginPath();
+      this.ctx.moveTo(800 + r * 10, lineOffset);
+      this.ctx.lineTo(800 + r * 10, lineH + lineOffset);
+      this.ctx.stroke();
+
+      ra += this.degree
+      if (ra < 0) {
+        ra += 2 * pi
+      } else if (ra > 2 * pi) {
+        ra -= 2 * pi
+      }
     }
   }
 
