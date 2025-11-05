@@ -2,19 +2,17 @@ import './App.css';
 import { useState, useLayoutEffect, useRef } from 'react';
 
 const pi = Math.PI;
-const mapX = 10, mapY = 10, tileSize = 64;
+const mapX = 8, mapY = 8, tileSize = 64;
 
 const map = [
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 0, 0, 1, 0, 0, 0, 1, 1,
-  1, 1, 0, 0, 1, 0, 0, 0, 1, 1,
-  1, 1, 0, 0, 1, 0, 0, 0, 1, 1,
-  1, 1, 0, 0, 1, 1, 0, 0, 1, 1,
-  1, 1, 0, 0, 0, 0, 0, 0, 1, 1,
-  1, 1, 0, 0, 0, 0, 1, 0, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1,
+  1, 0, 0, 1, 0, 0, 0, 1,
+  1, 0, 0, 1, 0, 0, 0, 1,
+  1, 0, 0, 1, 0, 0, 0, 1,
+  1, 0, 0, 1, 1, 0, 0, 1,
+  1, 0, 0, 0, 0, 0, 0, 1,
+  1, 0, 0, 0, 0, 1, 0, 1,
+  1, 1, 1, 1, 1, 1, 1, 1,
 
 ]
 
@@ -135,7 +133,7 @@ class Player {
     let hx, hy, disH = 100000000
 
 
-    for (r = 0; r < 60; r++) {
+    for (r = 0; r < 120; r++) {
 
       dof = 0
       let aTan = -1 / Math.tan(ra)
@@ -162,6 +160,8 @@ class Player {
         mx = Math.floor(rx / tileSize)
         my = Math.floor(ry / tileSize)
         mp = my * mapX + mx;
+        //console.log('h', dof, my, mx);
+
 
         if (mp < mapX * mapY && map[mp] === 1) {
           dof = 8
@@ -204,11 +204,16 @@ class Player {
         my = Math.floor(ry / tileSize)
         mp = my * mapX + mx;
 
+        console.log('v', 'dof', dof, 'x', mx, 'y', my, 'wall:', map[mp]);
+
+
         if (mp < mapX * mapY && map[mp] == 1) {
           dof = 8
           vx = rx
           vy = ry
           disV = this.distance(vx, this.x, vy, this.y)
+          console.log(disV);
+
         } else {
           rx += xo
           ry += yo
@@ -216,8 +221,8 @@ class Player {
         }
       }
 
-      let finalDist = disH > disV ? disV : disH;
-      let [px, py] = disH > disV ? [vx, vy] : [hx, hy]
+      let finalDist = disV < disH ? disV : disH;
+      let [px, py] = disV < disH ? [vx, vy] : [hx, hy]
       this.ctx.strokeStyle = '#4adb37ff';
       this.ctx.lineWidth = 1;
       this.ctx.beginPath();
@@ -231,23 +236,24 @@ class Player {
       } else if (ca > 2 * pi) {
         ca -= 2 * pi
       }
+
       finalDist = finalDist * Math.cos(ca)
 
 
       let lineH = (tileSize * 800) / finalDist
-      if (lineH > 800) { lineH = 200 }
+      if (lineH > 800) { lineH = 800 }
       let lineOffset = 400 - lineH / 2
 
-      console.log(lineH);
 
-      this.ctx.strokeStyle = '#2500caff';
+      this.ctx.strokeStyle = disV < disH ? '#2500caff' : '#2a00e4ff'
+
       this.ctx.lineWidth = 10;
       this.ctx.beginPath();
       this.ctx.moveTo(800 + r * 10, lineOffset);
       this.ctx.lineTo(800 + r * 10, lineH + lineOffset);
       this.ctx.stroke();
 
-      ra += this.degree
+      ra += this.degree / 2
       if (ra < 0) {
         ra += 2 * pi
       } else if (ra > 2 * pi) {
